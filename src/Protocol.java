@@ -2,8 +2,8 @@ import java.math.BigInteger;
 
 public class Protocol {
     // Large port number to avoid issues
-    private static int portNumber = 8765;
-    private static String IPAddress = "127.0.0.1"; // Loopback
+    private static int portNumber = 8766;
+    private static String IPAddress = "localhost"; // Loopback
 
     private static BigInteger DHp = new BigInteger("17801190547854226652823756245015999014523215636912067427327445031444" +
                                                         "28657887370207706126952521234630795671567847784664499706507709207278" +
@@ -19,6 +19,8 @@ public class Protocol {
 
     private static String startMessageString = "###START_MESSAGE###";
     private static String endMessageString = "###END_MESSAGE###";
+    private static String closeConnectionString = "###CLOSE_CONNECTION_MESSAGE###";
+
 
     public static BigInteger getDHg() {
         return DHg;
@@ -42,5 +44,9 @@ public class Protocol {
 
     public static String getEndMessageString() {
         return endMessageString;
+    }
+
+    public static String getCloseConnectionString() {
+        return closeConnectionString;
     }
 }

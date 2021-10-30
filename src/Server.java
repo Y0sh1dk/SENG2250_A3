@@ -18,12 +18,59 @@ public class Server {
 
     }
 
-    private void run(int portNumber) throws IOException {
+    private void run(int portNumber) throws IOException, InterruptedException {
         this.setupConnection(portNumber);
 
-        // Do stuff
+        String msg;
+        while(true) {
+            Thread.sleep(10);
+            msg = this.readMessage();
+            // If close connection
+            if (msg.equals(Protocol.getCloseConnectionString())) {
+                break;
+            }
+
+            System.out.println(msg);
+        }
 
         this.terminate();
+    }
+
+    private Boolean sendString(String msg) throws IOException {
+        try {
+            this.out.println(msg);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private String readString() throws IOException {
+        return this.in.readLine();
+    }
+
+    private String readMessage() throws IOException {
+        StringBuilder messageString = new StringBuilder();
+        String str = this.in.readLine();
+
+        boolean msgComplete = false;
+        while(!msgComplete) {
+            // Start of message
+            if (str != null && str.equals(Protocol.getStartMessageString())) {
+                while (true) {
+                    str = this.in.readLine();
+                    // End of message
+                    if (str != null && str.equals(Protocol.getEndMessageString())) {
+                        msgComplete = true;
+                        break;
+                    }
+                    if (str != null) {
+                        messageString.append(str);
+                    }
+                }
+            }
+        }
+        return messageString.toString();
     }
 
     private void setupConnection(int portNumber) throws IOException {

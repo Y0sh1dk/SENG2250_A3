@@ -20,13 +20,52 @@ public class Client {
 
     }
 
-    private void run(int portNumber) throws IOException {
+    private void run(int portNumber) throws IOException, InterruptedException {
         this.setupConnection(portNumber);
 
-        // DO stuff
+        int i = 0;
+        while(true) {
+            Thread.sleep(100);
+            this.sendMessage("Message from client!" + i);
+            i++;
 
+            if (i == 100) {
+                break;
+            }
+        }
+        this.sendMessage(Protocol.getStartMessageString());
+        this.sendMessage(Protocol.getCloseConnectionString());
+        this.sendMessage(Protocol.getEndMessageString());
         this.terminate();
     }
+
+    private void sendString(String msg) {
+        this.out.println(msg);
+    }
+
+    private String readString() throws IOException {
+        return this.in.readLine();
+    }
+
+    private void sendMessage(String msg) {
+        this.sendString(Protocol.getStartMessageString());
+        this.sendString(msg);
+        this.sendString(Protocol.getEndMessageString());
+    }
+
+
+    //private Boolean sendMessage(String msg) throws IOException {
+    //    try {
+    //        this.out.println(msg);
+    //        return true;
+    //    } catch (Exception e) {
+    //        return false;
+    //    }
+    //}
+    //
+    //private String readMessage() throws IOException {
+    //    return this.in.readLine();
+    //}
 
     private void setupConnection(int portNumber) throws IOException {
         this.cSocket = new Socket(Protocol.getIPAddress(), portNumber);
