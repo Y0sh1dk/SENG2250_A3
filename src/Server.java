@@ -36,7 +36,7 @@ public class Server {
 
         String msg;
         while(true) {
-            Thread.sleep(10);
+            Thread.sleep(Protocol.getReadRate());
             msg = this.readMessage();
             // If close connection
             if (msg.equals(Protocol.getCloseConnectionString())) {

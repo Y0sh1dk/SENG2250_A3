@@ -39,7 +39,7 @@ public class Client {
 
         int i = 0;
         while(true) {
-            Thread.sleep(100);
+            Thread.sleep(Protocol.getReadRate() * 2L);
             this.sendMessage("Message from client!" + i);
             i++;
 
@@ -47,7 +47,6 @@ public class Client {
                 break;
             }
         }
-        this.sendMessage(Protocol.getCloseConnectionString());
         this.terminate();
     }
 
@@ -96,6 +95,7 @@ public class Client {
     }
 
     private void terminate() throws IOException {
+        this.sendMessage(Protocol.getCloseConnectionString());
         this.in.close();
         this.out.close();
         this.cSocket.close();
