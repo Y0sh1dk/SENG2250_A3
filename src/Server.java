@@ -21,6 +21,19 @@ public class Server {
     private void run(int portNumber) throws IOException, InterruptedException {
         this.setupConnection(portNumber);
 
+        // Accept incoming connection
+        while (true) {
+            Thread.sleep(250);
+            System.out.println("Awaiting Client Connection...");
+            String str = this.readMessage();
+            if(str != null && str.equals(Protocol.getOpenConnectionString())) {
+                System.out.println("Client Connected");
+                this.sendMessage(Protocol.getOKMessageString());
+                break;
+            }
+        }
+
+
         String msg;
         while(true) {
             Thread.sleep(10);
@@ -71,6 +84,13 @@ public class Server {
             }
         }
         return messageString.toString();
+    }
+
+
+    private void sendMessage(String msg) throws IOException {
+        this.sendString(Protocol.getStartMessageString());
+        this.sendString(msg);
+        this.sendString(Protocol.getEndMessageString());
     }
 
     private void setupConnection(int portNumber) throws IOException {

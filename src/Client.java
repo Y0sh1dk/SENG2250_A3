@@ -23,6 +23,20 @@ public class Client {
     private void run(int portNumber) throws IOException, InterruptedException {
         this.setupConnection(portNumber);
 
+        // Open connection
+        this.sendMessage(Protocol.getOpenConnectionString());
+
+        // Wait for connection to be accepted
+        while (true) {
+            Thread.sleep(250);
+            System.out.println("Attempting to connect...");
+            String str = this.readMessage();
+            if(str != null && str.equals(Protocol.getOKMessageString())) {
+                System.out.println("Connected!");
+                break;
+            }
+        }
+
         int i = 0;
         while(true) {
             Thread.sleep(100);
@@ -33,9 +47,7 @@ public class Client {
                 break;
             }
         }
-        this.sendMessage(Protocol.getStartMessageString());
         this.sendMessage(Protocol.getCloseConnectionString());
-        this.sendMessage(Protocol.getEndMessageString());
         this.terminate();
     }
 
@@ -53,19 +65,29 @@ public class Client {
         this.sendString(Protocol.getEndMessageString());
     }
 
+    private String readMessage() throws IOException {
+        StringBuilder messageString = new StringBuilder();
+        String str = this.in.readLine();
 
-    //private Boolean sendMessage(String msg) throws IOException {
-    //    try {
-    //        this.out.println(msg);
-    //        return true;
-    //    } catch (Exception e) {
-    //        return false;
-    //    }
-    //}
-    //
-    //private String readMessage() throws IOException {
-    //    return this.in.readLine();
-    //}
+        boolean msgComplete = false;
+        while(!msgComplete) {
+            // Start of message
+            if (str != null && str.equals(Protocol.getStartMessageString())) {
+                while (true) {
+                    str = this.in.readLine();
+                    // End of message
+                    if (str != null && str.equals(Protocol.getEndMessageString())) {
+                        msgComplete = true;
+                        break;
+                    }
+                    if (str != null) {
+                        messageString.append(str);
+                    }
+                }
+            }
+        }
+        return messageString.toString();
+    }
 
     private void setupConnection(int portNumber) throws IOException {
         this.cSocket = new Socket(Protocol.getIPAddress(), portNumber);
