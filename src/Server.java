@@ -33,20 +33,47 @@ public class Server {
             }
         }
 
-
-        String msg;
-        while(true) {
-            Thread.sleep(Protocol.getReadRate());
-            msg = this.readMessage();
-            // If close connection
-            if (msg.equals(Protocol.getCloseConnectionString())) {
-                break;
-            }
-
-            System.out.println(msg);
+        String message;
+        // --- Start Setup ---
+        message = this.readMessage();
+        if (!message.equals("Hello") || message.equals(Protocol.getCloseConnectionString())) {
+            this.terminate();
         }
+        this.sendMessage("My RSA public key");
+
+
+        // --- End Setup ---
+
+        // --- Start Handshake ---
+
+
+
+        // --- End Handshake ---
+
+        // --- Start Data Exchange ---
+
+
+
+        // --- End Data Exchange ---
+
+
+
+
+
 
         this.terminate();
+
+        //String msg;
+        //while(true) {
+        //    Thread.sleep(Protocol.getReadRate());
+        //    msg = this.readMessage();
+        //    // If close connection
+        //    if (msg.equals(Protocol.getCloseConnectionString())) {
+        //        break;
+        //    }
+        //
+        //    System.out.println(msg);
+        //}
     }
 
     private Boolean sendString(String msg) throws IOException {
@@ -101,9 +128,12 @@ public class Server {
     }
 
     private void terminate() throws IOException {
+        System.out.println("Shutting Down...");
+        this.sendMessage(Protocol.getCloseConnectionString());
         this.in.close();
         this.out.close();
         this.clientSocket.close();
         this.sSocket.close();
+        System.exit(0);
     }
 }

@@ -37,16 +37,46 @@ public class Client {
             }
         }
 
-        int i = 0;
-        while(true) {
-            Thread.sleep(Protocol.getReadRate() * 2L);
-            this.sendMessage("Message from client!" + i);
-            i++;
+        String message;
 
-            if (i == 100) {
-                break;
-            }
+        // --- Start Setup ---
+        this.sendMessage("Hello");
+        message = this.readMessage();
+        if(message.equals(Protocol.getCloseConnectionString())) {
+            this.terminate();
         }
+        System.out.println(message);
+
+
+        // --- End Setup ---
+
+        // --- Start Handshake ---
+
+
+
+        // --- End Handshake ---
+
+        // --- Start Data Exchange ---
+
+
+
+        // --- End Data Exchange ---
+
+
+
+
+
+
+        //int i = 0;
+        //while(true) {
+        //    Thread.sleep(Protocol.getReadRate() * 2L);
+        //    this.sendMessage("Message from client!" + i);
+        //    i++;
+        //
+        //    if (i == 100) {
+        //        break;
+        //    }
+        //}
         this.terminate();
     }
 
@@ -95,9 +125,11 @@ public class Client {
     }
 
     private void terminate() throws IOException {
+        System.out.println("Shutting Down...");
         this.sendMessage(Protocol.getCloseConnectionString());
         this.in.close();
         this.out.close();
         this.cSocket.close();
+        System.exit(0);
     }
 }
