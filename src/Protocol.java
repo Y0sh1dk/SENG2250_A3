@@ -26,6 +26,7 @@ public class Protocol {
 
     private static int RSAEncryptionBit = 2048;
 
+    private static String initialIV = "InitialIVString";
 
     private static String startMessageString = "###START_MESSAGE###";
     private static String endMessageString = "###END_MESSAGE###";
@@ -101,5 +102,9 @@ public class Protocol {
 
     public static int getRSAEncryptionBit() {
         return RSAEncryptionBit;
+    }
+
+    public static String getInitialIV() {
+        return initialIV;
     }
 }

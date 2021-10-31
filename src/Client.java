@@ -33,6 +33,10 @@ public class Client {
 
         BigInteger serverDHPublicKey;
 
+        BigInteger sessionKey;
+
+        BigInteger RSASignature;
+
         // Open connection
         this.sendMessage(Protocol.getOpenConnectionString());
 
@@ -93,6 +97,37 @@ public class Client {
         }
         serverDHPublicKey = new BigInteger(message);
         System.out.println("Server DH Public Key:\n" + serverDHPublicKey + "\n\n");
+
+        // Receive RSA Signature
+        message = this.readMessage();
+        if(message.equals(Protocol.getCloseConnectionString())) {
+            this.terminate();
+        }
+        RSASignature = new BigInteger(message);
+        System.out.println("RSA Signature:\n" + RSASignature + "\n\n");
+
+        // Calculate hashed session key
+        sessionKey = Utilities.SHA256(Utilities.modPow(serverDHPublicKey, DHPrivateKey, Protocol.getDHp()).toString());
+        System.out.println("Session Key:\n" + sessionKey + "\n\n");
+
+        // Send hashed session key
+        this.sendMessage(sessionKey.toString());
+
+        // Receive hashed session key
+        message = this.readMessage();
+        if(message.equals(Protocol.getCloseConnectionString())) {
+            this.terminate();
+        }
+        // Verify against own session key
+        if (!message.equals(sessionKey.toString())) {
+            this.terminate();
+        }
+        System.out.println("Session keys verified!" + "\n\n");
+
+        // Send encrypted finish message
+        System.out.println("Sending finish handshake message...");
+
+        // Receive encrypted finish message
 
         // ------------------ End Handshake ------------------
 
