@@ -119,8 +119,27 @@ public class Server {
         }
         System.out.println("Session keys verified!" + "\n\n");
 
+        // Send encrypted finish message
+        System.out.println("Sending finish handshake message...");
+        sendMessage(Utilities.AESEncrypt(Protocol.getCheckSessionKeymessage(), sessionKey)[0] +
+                Protocol.getMessageDelimiter() +
+                Utilities.AESEncrypt(Protocol.getCheckSessionKeymessage(), sessionKey)[1]);
 
-        // Sign server DH key with RSA
+        // Receive encrypted finish message
+        message = this.readMessage();
+        if(message.equals(Protocol.getCloseConnectionString())) {
+            this.terminate();
+        }
+        String[] checkSession = message.split(Protocol.getMessageDelimiter());
+        checkSession[0] = Utilities.AESDecrypt(checkSession[0], sessionKey);
+
+        // Check Message and HMAC are correct
+        if(!checkSession[0].equals(Protocol.getCheckSessionKeymessage()) ||
+                !checkSession[1].equals(Utilities.genHMAC(checkSession[0], sessionKey).toString())) {
+            this.terminate();
+        }
+
+        System.out.println("Handshake Success!" + "\n\n");
 
         // ------------------ End Handshake ------------------
 

@@ -9,6 +9,7 @@ public class Protocol {
     private static String clientID = "Client12345";
     private static String serverID = "Server12345";
     private static String sessionID = "Session1";
+    private static String checkSessionKeyMessage = "checkSessionKeymessage";
 
     private static BigInteger DHp = new BigInteger("17801190547854226652823756245015999014523215636912067427327445031444" +
             "28657887370207706126952521234630795671567847784664499706507709207278" +
@@ -26,7 +27,7 @@ public class Protocol {
 
     private static int RSAEncryptionBit = 2048;
 
-    private static String initialIV = "InitialIVString";
+    private static String initialIV = "InitialIVString1";
 
     private static String startMessageString = "###START_MESSAGE###";
     private static String endMessageString = "###END_MESSAGE###";
@@ -106,5 +107,9 @@ public class Protocol {
 
     public static String getInitialIV() {
         return initialIV;
+    }
+
+    public static String getCheckSessionKeymessage() {
+        return checkSessionKeyMessage;
     }
 }

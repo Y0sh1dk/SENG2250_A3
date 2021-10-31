@@ -88,12 +88,14 @@ public class Utilities {
 
             messageHMAC[0] = Base64.getEncoder().encodeToString(cipher.doFinal(inMsg.getBytes(StandardCharsets.UTF_8)));
             messageHMAC[1] = genHMAC(inMsg, sessionKey).toString();
-        } catch (Exception e) {}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         return messageHMAC;
     }
 
-    public static String AESDecrypt(String inMesg, BigInteger sessionKey) {
+    public static String AESDecrypt(String inMsg, BigInteger sessionKey) {
         try {
             SecretKeySpec keySpec = new SecretKeySpec(sessionKey.toByteArray(), "AES");
             IvParameterSpec iv = new IvParameterSpec(Protocol.getInitialIV().getBytes(StandardCharsets.UTF_8));
@@ -101,7 +103,7 @@ public class Utilities {
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
             cipher.init(Cipher.DECRYPT_MODE, keySpec, iv);
 
-            return new String(cipher.doFinal(Base64.getDecoder().decode(inMesg)));
+            return new String(cipher.doFinal(Base64.getDecoder().decode(inMsg)));
         } catch(Exception e) {}
         return "Error Decrypting";
     }
