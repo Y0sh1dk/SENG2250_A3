@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -23,6 +24,10 @@ public class Client {
     private void run(int portNumber) throws IOException, InterruptedException {
         this.setupConnection(portNumber);
 
+        BigInteger serverPubKey;
+        String serverID;
+        String sessionID;
+
         // Open connection
         this.sendMessage(Protocol.getOpenConnectionString());
 
@@ -39,28 +44,39 @@ public class Client {
 
         String message;
 
-        // --- Start Setup ---
+        // ------------------ Start Setup ------------------
         this.sendMessage("Hello");
         message = this.readMessage();
         if(message.equals(Protocol.getCloseConnectionString())) {
             this.terminate();
         }
-        System.out.println(message);
+        serverPubKey = new BigInteger(message);
+        System.out.println("Server Public Key:\n" + serverPubKey + "\n\n");
+        // ------------------ End Setup ------------------
+
+        // ------------------ Start Handshake ------------------
+        // Send client ID
+        this.sendMessage(Protocol.getClientID());
+
+        // Receive server ID and Session ID
+        message = this.readMessage();
+        if(message.equals(Protocol.getCloseConnectionString())) {
+            this.terminate();
+        }
+        String[] serverMessage = message.split(Protocol.getMessageDelimiter());
+        serverID = serverMessage[0];
+        sessionID = serverMessage[1];
+        System.out.println("Server ID:\n" + serverID + "\n\n");
+        System.out.println("Session ID:\n" + sessionID + "\n\n");
 
 
-        // --- End Setup ---
+        // ------------------ End Handshake ------------------
 
-        // --- Start Handshake ---
-
-
-
-        // --- End Handshake ---
-
-        // --- Start Data Exchange ---
+        // ------------------ Start Data Exchange ------------------
 
 
 
-        // --- End Data Exchange ---
+        // ------------------ End Data Exchange ------------------
 
 
 

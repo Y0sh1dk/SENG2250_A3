@@ -1,4 +1,5 @@
 import java.io.*;
+import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -21,6 +22,11 @@ public class Server {
     private void run(int portNumber) throws IOException, InterruptedException {
         this.setupConnection(portNumber);
 
+        BigInteger pubKey;
+        String clientID;
+
+
+
         // Accept incoming connection
         while (true) {
             Thread.sleep(250);
@@ -34,27 +40,37 @@ public class Server {
         }
 
         String message;
-        // --- Start Setup ---
+        // ------------------ Start Setup ------------------
         message = this.readMessage();
         if (!message.equals("Hello") || message.equals(Protocol.getCloseConnectionString())) {
             this.terminate();
         }
-        this.sendMessage("My RSA public key");
+        // Generate public key
+        pubKey = Utilities.modPow(Protocol.getDHg(), Protocol.getPubKeyE(), Protocol.getDHp());
+        // Send public key
+        System.out.println("Sending Public Key:\n" + pubKey + "\n\n");
+        this.sendMessage(pubKey.toString());
+        // ------------------ End Setup ------------------
+
+        // ------------------ Start Handshake ------------------
+        message = this.readMessage();
+        if (message.equals(Protocol.getCloseConnectionString())) {
+            this.terminate();
+        }
+        clientID = message;
+
+        // Send Server ID and Session ID
+        System.out.println("Sending ServerID,SessionID:\n" + Protocol.getServerID() + "," + Protocol.getSessionID() + "\n\n");
+        this.sendMessage(Protocol.getServerID() + Protocol.getMessageDelimiter() + Protocol.getSessionID());
 
 
-        // --- End Setup ---
+        // ------------------ End Handshake ------------------
 
-        // --- Start Handshake ---
-
-
-
-        // --- End Handshake ---
-
-        // --- Start Data Exchange ---
+        // ------------------ Start Data Exchange ------------------
 
 
 
-        // --- End Data Exchange ---
+        // ------------------ End Data Exchange ------------------
 
 
 
