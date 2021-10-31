@@ -22,8 +22,16 @@ public class Server {
     private void run(int portNumber) throws IOException, InterruptedException {
         this.setupConnection(portNumber);
 
-        BigInteger pubKey;
+        BigInteger[] RSAPrivateKey;
+        BigInteger[] RSAPublicKey;
         String clientID;
+
+        BigInteger DHPrivateKey;
+        BigInteger DHPublicKey;
+
+        BigInteger clientDHPublicKey;
+
+
 
 
 
@@ -45,14 +53,21 @@ public class Server {
         if (!message.equals("Hello") || message.equals(Protocol.getCloseConnectionString())) {
             this.terminate();
         }
-        // Generate public key
-        pubKey = Utilities.modPow(Protocol.getDHg(), Protocol.getPubKeyE(), Protocol.getDHp());
+
+        // we want to send the server public RSA key
+
+        // Generate RSA keys
+        RSAPrivateKey = Utilities.generateRSAKeys(Protocol.getRSAEncryptionBit());
+        RSAPublicKey = new BigInteger[]{RSAPrivateKey[0], Protocol.getPubKeyE()};
+        //pubKey = Utilities.modPow(Protocol.getDHg(), Protocol.getPubKeyE(), Protocol.getDHp());
+
         // Send public key
-        System.out.println("Sending Public Key:\n" + pubKey + "\n\n");
-        this.sendMessage(pubKey.toString());
+        System.out.println("Sending Public Key:\n" + RSAPublicKey[0] + Protocol.getMessageDelimiter() + RSAPublicKey[1] + "\n\n");
+        this.sendMessage(RSAPublicKey[0] + Protocol.getMessageDelimiter() + RSAPublicKey[1]);
         // ------------------ End Setup ------------------
 
         // ------------------ Start Handshake ------------------
+        // Receive Client ID from client
         message = this.readMessage();
         if (message.equals(Protocol.getCloseConnectionString())) {
             this.terminate();
@@ -63,6 +78,21 @@ public class Server {
         System.out.println("Sending ServerID,SessionID:\n" + Protocol.getServerID() + "," + Protocol.getSessionID() + "\n\n");
         this.sendMessage(Protocol.getServerID() + Protocol.getMessageDelimiter() + Protocol.getSessionID());
 
+        // Generate DH Private key
+        DHPrivateKey = Utilities.genDHPrivateKey(Protocol.getDHp());
+        // Generate DH Public key
+        DHPublicKey = Utilities.genDHPublicKey(DHPrivateKey);
+
+        // Receive DH Public key from client
+        message = this.readMessage();
+        if (message.equals(Protocol.getCloseConnectionString())) {
+            this.terminate();
+        }
+        clientDHPublicKey = new BigInteger(message);
+
+        // Send DH Public key to client
+        System.out.println("Sending DH Public Key to client\n");
+        this.sendMessage(DHPublicKey.toString());
 
         // ------------------ End Handshake ------------------
 
@@ -72,24 +102,7 @@ public class Server {
 
         // ------------------ End Data Exchange ------------------
 
-
-
-
-
-
         this.terminate();
-
-        //String msg;
-        //while(true) {
-        //    Thread.sleep(Protocol.getReadRate());
-        //    msg = this.readMessage();
-        //    // If close connection
-        //    if (msg.equals(Protocol.getCloseConnectionString())) {
-        //        break;
-        //    }
-        //
-        //    System.out.println(msg);
-        //}
     }
 
     private Boolean sendString(String msg) throws IOException {

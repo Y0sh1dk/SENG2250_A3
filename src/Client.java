@@ -24,9 +24,14 @@ public class Client {
     private void run(int portNumber) throws IOException, InterruptedException {
         this.setupConnection(portNumber);
 
-        BigInteger serverPubKey;
+        BigInteger[] serverRSAPubKey = new BigInteger[2];
         String serverID;
         String sessionID;
+
+        BigInteger DHPrivateKey;
+        BigInteger DHPublicKey;
+
+        BigInteger serverDHPublicKey;
 
         // Open connection
         this.sendMessage(Protocol.getOpenConnectionString());
@@ -50,8 +55,12 @@ public class Client {
         if(message.equals(Protocol.getCloseConnectionString())) {
             this.terminate();
         }
-        serverPubKey = new BigInteger(message);
-        System.out.println("Server Public Key:\n" + serverPubKey + "\n\n");
+        serverRSAPubKey[0] = new BigInteger(message.split(Protocol.getMessageDelimiter())[0]);
+        serverRSAPubKey[1] = new BigInteger(message.split(Protocol.getMessageDelimiter())[1]);
+
+        System.out.println("Server Public Key:\n" +
+                "e: " + serverRSAPubKey[0] +
+                "\nKey: " + serverRSAPubKey[1] + "\n\n");
         // ------------------ End Setup ------------------
 
         // ------------------ Start Handshake ------------------
@@ -63,12 +72,27 @@ public class Client {
         if(message.equals(Protocol.getCloseConnectionString())) {
             this.terminate();
         }
-        String[] serverMessage = message.split(Protocol.getMessageDelimiter());
-        serverID = serverMessage[0];
-        sessionID = serverMessage[1];
+        serverID = message.split(Protocol.getMessageDelimiter())[0];
+        sessionID = message.split(Protocol.getMessageDelimiter())[1];
         System.out.println("Server ID:\n" + serverID + "\n\n");
         System.out.println("Session ID:\n" + sessionID + "\n\n");
 
+        // Generate DH Private key
+        DHPrivateKey = Utilities.genDHPrivateKey(Protocol.getDHp());
+        // Generate DH Public key
+        DHPublicKey = Utilities.genDHPublicKey(DHPrivateKey);
+
+        // Send DH Public key to server
+        System.out.println("Sending DHPublicKey to Server:\n" + DHPublicKey.toString() + "\n\n");
+        this.sendMessage(DHPublicKey.toString());
+
+        // Receive Servers DH Public Key
+        message = this.readMessage();
+        if(message.equals(Protocol.getCloseConnectionString())) {
+            this.terminate();
+        }
+        serverDHPublicKey = new BigInteger(message);
+        System.out.println("Server DH Public Key:\n" + serverDHPublicKey + "\n\n");
 
         // ------------------ End Handshake ------------------
 
@@ -78,21 +102,6 @@ public class Client {
 
         // ------------------ End Data Exchange ------------------
 
-
-
-
-
-
-        //int i = 0;
-        //while(true) {
-        //    Thread.sleep(Protocol.getReadRate() * 2L);
-        //    this.sendMessage("Message from client!" + i);
-        //    i++;
-        //
-        //    if (i == 100) {
-        //        break;
-        //    }
-        //}
         this.terminate();
     }
 

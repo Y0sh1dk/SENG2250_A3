@@ -24,6 +24,8 @@ public class Protocol {
 
     private static BigInteger pubKeyE = new BigInteger("65537");
 
+    private static int RSAEncryptionBit = 2048;
+
 
     private static String startMessageString = "###START_MESSAGE###";
     private static String endMessageString = "###END_MESSAGE###";
@@ -95,5 +97,9 @@ public class Protocol {
 
     public static String getMessageDelimiter() {
         return messageDelimiter;
+    }
+
+    public static int getRSAEncryptionBit() {
+        return RSAEncryptionBit;
     }
 }
