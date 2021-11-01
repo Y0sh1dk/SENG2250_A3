@@ -40,17 +40,17 @@ public class Server {
         // Accept incoming connection
         while (true) {
             Thread.sleep(250);
-            System.out.println("Awaiting Client Connection...");
             String str = this.readMessage();
             if(str != null && str.equals(Protocol.getOpenConnectionString())) {
-                System.out.println("Client Connected");
+                System.out.println("Client Connected!");
                 this.sendMessage(Protocol.getOKMessageString());
                 break;
             }
         }
 
+        System.out.println("---------------------- Start Setup ----------------------");
+
         String message;
-        // ------------------ Start Setup ------------------
         message = this.readMessage();
         if (!message.equals("Hello") || message.equals(Protocol.getCloseConnectionString())) {
             this.terminate();
@@ -66,9 +66,12 @@ public class Server {
         // Send public key
         System.out.println("Sending Public Key:\n" + RSAPublicKey[0] + Protocol.getMessageDelimiter() + RSAPublicKey[1] + "\n\n");
         this.sendMessage(RSAPublicKey[0] + Protocol.getMessageDelimiter() + RSAPublicKey[1]);
+
+        System.out.println("----------------------- End Setup -----------------------\n");
         // ------------------ End Setup ------------------
 
         // ------------------ Start Handshake ------------------
+        System.out.println("-------------------- Start Handshake --------------------");
         // Receive Client ID from client
         message = this.readMessage();
         if (message.equals(Protocol.getCloseConnectionString())) {
@@ -140,12 +143,11 @@ public class Server {
         }
         System.out.println("Handshake Success!" + "\n\n");
 
-        // ------------------ End Handshake ------------------
+        System.out.println("--------------------- End Handshake ---------------------\n");
 
-        // ------------------ Start Data Exchange ------------------
-        String[] encryptedMessage;
 
-        // Send message 1
+        System.out.println("------------------ Start Data Transfer ------------------");
+
         String msg1 = "Hello, this is a message from the Server, Please accept this msg";
         String msg2 = "A bank system, including the internal and external sub-systems..";
 
@@ -180,8 +182,7 @@ public class Server {
         this.sendMessage(Utilities.encryptAndHMACMessage(msg2, sessionKey));
 
 
-        // ------------------ End Data Exchange ------------------
-
+        System.out.println("------------------- End Data Transfer -------------------");
         this.terminate();
     }
 
@@ -226,6 +227,7 @@ public class Server {
 
     private void setupConnection(int portNumber) throws IOException {
         this.sSocket = new ServerSocket(portNumber);
+        System.out.println("Waiting for a client connection...");
         this.clientSocket = this.sSocket.accept();
         this.out = new PrintWriter(this.clientSocket.getOutputStream(), true);
         this.in = new BufferedReader(new InputStreamReader(this.clientSocket.getInputStream()));

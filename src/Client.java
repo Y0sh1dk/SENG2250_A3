@@ -44,16 +44,16 @@ public class Client {
         // Wait for connection to be accepted
         while (true) {
             Thread.sleep(250);
-            System.out.println("Attempting to connect...");
             String str = this.readMessage();
             if(str != null && str.equals(Protocol.getOKMessageString())) {
-                System.out.println("Connected!");
+                System.out.println("Connected to Server!");
                 break;
             }
         }
 
+        System.out.println("---------------------- Start Setup ----------------------");
+
         String message;
-        // ------------------ Start Setup ------------------
         this.sendMessage("Hello");
         message = this.readMessage();
         if(message.equals(Protocol.getCloseConnectionString())) {
@@ -65,9 +65,12 @@ public class Client {
         System.out.println("Server Public Key:\n" +
                 "e: " + serverRSAPubKey[0] +
                 "\nKey: " + serverRSAPubKey[1] + "\n\n");
+
+        System.out.println("----------------------- End Setup -----------------------\n");
         // ------------------ End Setup ------------------
 
         // ------------------ Start Handshake ------------------
+        System.out.println("-------------------- Start Handshake --------------------");
         // Send client ID
         this.sendMessage(Protocol.getClientID());
 
@@ -151,11 +154,11 @@ public class Client {
         }
         System.out.println("Handshake Success!" + "\n\n");
 
-        // ------------------ End Handshake ------------------
+        System.out.println("--------------------- End Handshake ---------------------\n");
 
-        // ------------------ Start Data Exchange ------------------
 
-        // Send message 1
+        System.out.println("------------------ Start Data Transfer ------------------");
+
         String msg1 = "Hello, this is a message from the Client, Please accept this msg";
         String msg2 = "Systems and Network Security is very cool!, would recommend!!!..";
 
@@ -188,8 +191,7 @@ public class Client {
             this.terminate();
         }
 
-        // ------------------ End Data Exchange ------------------
-
+        System.out.println("------------------- End Data Transfer -------------------");
         this.terminate();
     }
 
@@ -229,9 +231,14 @@ public class Client {
 
     private void setupConnection(int portNumber) throws IOException {
         while(this.cSocket == null) {
+            System.out.println("Attempting to connect to server...");
             try {
                 this.cSocket = new Socket(Protocol.getIPAddress(), portNumber);
             } catch (Exception e) {}
+            try {
+                Thread.sleep(750);
+            } catch (Exception e) {}
+
         }
         this.out = new PrintWriter(this.cSocket.getOutputStream(), true);
         this.in = new BufferedReader(new InputStreamReader(this.cSocket.getInputStream()));
