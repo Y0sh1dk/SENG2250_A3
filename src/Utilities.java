@@ -4,7 +4,6 @@ import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
@@ -132,7 +131,7 @@ public class Utilities {
         if(splitMessage[1].equals(Utilities.genHMAC(splitMessage[0], sessionKey).toString())) {
             return splitMessage[0];
         }
-        throw new Exception("Invalid HMAC");
+        throw new Exception("HMAC Verification Failed");
     }
 
     public static String encryptAndHMACMessage(String message, BigInteger sessionKey) {

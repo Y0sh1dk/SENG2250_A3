@@ -3,7 +3,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.math.BigInteger;
-import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Client {
@@ -22,19 +21,21 @@ public class Client {
     }
 
     private void run(int portNumber) throws IOException, InterruptedException {
+        System.out.println("");
+        System.out.println("---------------------------------------------------");
+        System.out.println("                SENG2250 - A3 CLIENT               ");
+        System.out.println("---------------------------------------------------");
+        System.out.println("");
+
         this.setupConnection(portNumber);
 
         BigInteger[] serverRSAPubKey = new BigInteger[2];
         String serverID;
         String sessionID;
-
         BigInteger DHPrivateKey;
         BigInteger DHPublicKey;
-
         BigInteger serverDHPublicKey;
-
         BigInteger sessionKey;
-
         BigInteger RSASignature;
 
         // Open connection
@@ -52,7 +53,6 @@ public class Client {
         }
 
         String message;
-
         // ------------------ Start Setup ------------------
         this.sendMessage("Hello");
         message = this.readMessage();
@@ -131,25 +131,24 @@ public class Client {
         System.out.println("Session keys verified!" + "\n\n");
 
         // Send encrypted finish message
-        System.out.println("Sending finish handshake message..." + "\n\n");
-        sendMessage(Utilities.AESEncrypt(Protocol.getCheckSessionKeymessage(), sessionKey)[0] +
-                Protocol.getMessageDelimiter() +
-                Utilities.AESEncrypt(Protocol.getCheckSessionKeymessage(), sessionKey)[1]);
+        System.out.println("Sending finish handshake message...");
+        sendMessage(Utilities.encryptAndHMACMessage(Protocol.getCheckSessionKeyMessage(), sessionKey));
 
         // Receive encrypted finish message
         message = this.readMessage();
         if(message.equals(Protocol.getCloseConnectionString())) {
             this.terminate();
         }
-        String[] checkSession = message.split(Protocol.getMessageDelimiter());
-        checkSession[0] = Utilities.AESDecrypt(checkSession[0], sessionKey);
-
-        // Check Message and HMAC are correct
-        if(!checkSession[0].equals(Protocol.getCheckSessionKeymessage()) ||
-        !checkSession[1].equals(Utilities.genHMAC(checkSession[0], sessionKey).toString())) {
+        try {
+            message = Utilities.decryptAndVerifyMessage(message, sessionKey);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
             this.terminate();
         }
-
+        // Verify message
+        if(!message.equals(Protocol.getCheckSessionKeyMessage())) {
+            this.terminate();
+        }
         System.out.println("Handshake Success!" + "\n\n");
 
         // ------------------ End Handshake ------------------
@@ -194,14 +193,14 @@ public class Client {
         this.terminate();
     }
 
-    private void sendString(String msg) {
+    private void _sendString(String msg) {
         this.out.println(msg);
     }
 
     private void sendMessage(String msg) {
-        this.sendString(Protocol.getStartMessageString());
-        this.sendString(msg);
-        this.sendString(Protocol.getEndMessageString());
+        this._sendString(Protocol.getStartMessageString());
+        this._sendString(msg);
+        this._sendString(Protocol.getEndMessageString());
     }
 
     private String readMessage() throws IOException {
@@ -229,7 +228,11 @@ public class Client {
     }
 
     private void setupConnection(int portNumber) throws IOException {
-        this.cSocket = new Socket(Protocol.getIPAddress(), portNumber);
+        while(this.cSocket == null) {
+            try {
+                this.cSocket = new Socket(Protocol.getIPAddress(), portNumber);
+            } catch (Exception e) {}
+        }
         this.out = new PrintWriter(this.cSocket.getOutputStream(), true);
         this.in = new BufferedReader(new InputStreamReader(this.cSocket.getInputStream()));
     }

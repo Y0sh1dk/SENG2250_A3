@@ -20,22 +20,22 @@ public class Server {
     }
 
     private void run(int portNumber) throws IOException, InterruptedException {
+        System.out.println("");
+        System.out.println("---------------------------------------------------");
+        System.out.println("                SENG2250 - A3 SERVER               ");
+        System.out.println("---------------------------------------------------");
+        System.out.println("");
+
         this.setupConnection(portNumber);
 
         BigInteger[] RSAPrivateKey;
         BigInteger[] RSAPublicKey;
         String clientID;
-
         BigInteger DHPrivateKey;
         BigInteger DHPublicKey;
-
         BigInteger clientDHPublicKey;
-
         BigInteger RSASignature;
-
         BigInteger sessionKey;
-
-
 
         // Accept incoming connection
         while (true) {
@@ -121,24 +121,23 @@ public class Server {
 
         // Send encrypted finish message
         System.out.println("Sending finish handshake message...");
-        sendMessage(Utilities.AESEncrypt(Protocol.getCheckSessionKeymessage(), sessionKey)[0] +
-                Protocol.getMessageDelimiter() +
-                Utilities.AESEncrypt(Protocol.getCheckSessionKeymessage(), sessionKey)[1]);
+        sendMessage(Utilities.encryptAndHMACMessage(Protocol.getCheckSessionKeyMessage(), sessionKey));
 
         // Receive encrypted finish message
         message = this.readMessage();
         if(message.equals(Protocol.getCloseConnectionString())) {
             this.terminate();
         }
-        String[] checkSession = message.split(Protocol.getMessageDelimiter());
-        checkSession[0] = Utilities.AESDecrypt(checkSession[0], sessionKey);
-
-        // Check Message and HMAC are correct
-        if(!checkSession[0].equals(Protocol.getCheckSessionKeymessage()) ||
-                !checkSession[1].equals(Utilities.genHMAC(checkSession[0], sessionKey).toString())) {
+        try {
+            message = Utilities.decryptAndVerifyMessage(message, sessionKey);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
             this.terminate();
         }
-
+        // Verify message
+        if(!message.equals(Protocol.getCheckSessionKeyMessage())) {
+            this.terminate();
+        }
         System.out.println("Handshake Success!" + "\n\n");
 
         // ------------------ End Handshake ------------------
@@ -186,13 +185,19 @@ public class Server {
         this.terminate();
     }
 
-    private Boolean sendString(String msg) throws IOException {
+    private Boolean _sendString(String msg) throws IOException {
         try {
             this.out.println(msg);
             return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private void sendMessage(String msg) throws IOException {
+        this._sendString(Protocol.getStartMessageString());
+        this._sendString(msg);
+        this._sendString(Protocol.getEndMessageString());
     }
 
     private String readMessage() throws IOException {
@@ -217,13 +222,6 @@ public class Server {
             }
         }
         return messageString.toString();
-    }
-
-
-    private void sendMessage(String msg) throws IOException {
-        this.sendString(Protocol.getStartMessageString());
-        this.sendString(msg);
-        this.sendString(Protocol.getEndMessageString());
     }
 
     private void setupConnection(int portNumber) throws IOException {

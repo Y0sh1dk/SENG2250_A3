@@ -109,7 +109,7 @@ public class Protocol {
         return initialIV;
     }
 
-    public static String getCheckSessionKeymessage() {
+    public static String getCheckSessionKeyMessage() {
         return checkSessionKeyMessage;
     }
 }
