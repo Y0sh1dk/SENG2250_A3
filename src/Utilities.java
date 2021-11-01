@@ -124,4 +124,21 @@ public class Utilities {
                 Utilities.SHA256(sessionKey.xor(ipad) + inMsg));
     }
 
+    public static String decryptAndVerifyMessage(String message, BigInteger sessionKey) throws Exception {
+        String[] splitMessage = message.split(Protocol.getMessageDelimiter());
+        // Decrypt message
+        splitMessage[0] = Utilities.AESDecrypt(splitMessage[0], sessionKey);
+        // Verify HMAC
+        if(splitMessage[1].equals(Utilities.genHMAC(splitMessage[0], sessionKey).toString())) {
+            return splitMessage[0];
+        }
+        throw new Exception("Invalid HMAC");
+    }
+
+    public static String encryptAndHMACMessage(String message, BigInteger sessionKey) {
+        return Utilities.AESEncrypt(message, sessionKey)[0] +
+                Protocol.getMessageDelimiter() +
+                Utilities.AESEncrypt(message, sessionKey)[1];
+    }
+
 }

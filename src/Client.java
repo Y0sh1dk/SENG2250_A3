@@ -106,6 +106,12 @@ public class Client {
         RSASignature = new BigInteger(message);
         System.out.println("RSA Signature:\n" + RSASignature + "\n\n");
 
+        // Verify RSA Signature
+        if(!RSASignature.equals(Utilities.genRSASignature(serverDHPublicKey, serverRSAPubKey))) {
+            this.terminate();
+        }
+        System.out.println("RSA Signature Verified!" + "\n\n");
+
         // Calculate hashed session key
         sessionKey = Utilities.SHA256(Utilities.modPow(serverDHPublicKey, DHPrivateKey, Protocol.getDHp()).toString());
         System.out.println("Session Key:\n" + sessionKey + "\n\n");
@@ -143,14 +149,45 @@ public class Client {
         !checkSession[1].equals(Utilities.genHMAC(checkSession[0], sessionKey).toString())) {
             this.terminate();
         }
-        
+
         System.out.println("Handshake Success!" + "\n\n");
 
         // ------------------ End Handshake ------------------
 
         // ------------------ Start Data Exchange ------------------
 
+        // Send message 1
+        String msg1 = "Hello, this is a message from the Client, Please accept this msg";
+        String msg2 = "Systems and Network Security is very cool!, would recommend!!!..";
 
+        System.out.println("Sending Message 1...");
+        this.sendMessage(Utilities.encryptAndHMACMessage(msg1, sessionKey));
+
+        // Receive encrypted message
+        try {
+            message = Utilities.decryptAndVerifyMessage(this.readMessage(), sessionKey);
+        } catch (Exception ignored) {
+            System.out.println("Invalid HMAC");
+            this.terminate();
+        }
+        if(message.equals(Protocol.getCloseConnectionString())) {
+            this.terminate();
+        }
+
+        // Send encrypted message
+        System.out.println("Sending Message 2...");
+        this.sendMessage(Utilities.encryptAndHMACMessage(msg2, sessionKey));
+
+        // Receive encrypted message
+        try {
+            message = Utilities.decryptAndVerifyMessage(this.readMessage(), sessionKey);
+        } catch (Exception ignored) {
+            System.out.println("Invalid HMAC");
+            this.terminate();
+        }
+        if(message.equals(Protocol.getCloseConnectionString())) {
+            this.terminate();
+        }
 
         // ------------------ End Data Exchange ------------------
 
@@ -159,10 +196,6 @@ public class Client {
 
     private void sendString(String msg) {
         this.out.println(msg);
-    }
-
-    private String readString() throws IOException {
-        return this.in.readLine();
     }
 
     private void sendMessage(String msg) {

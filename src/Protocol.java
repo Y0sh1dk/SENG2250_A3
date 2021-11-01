@@ -9,7 +9,7 @@ public class Protocol {
     private static String clientID = "Client12345";
     private static String serverID = "Server12345";
     private static String sessionID = "Session1";
-    private static String checkSessionKeyMessage = "checkSessionKeymessage";
+    private static String checkSessionKeyMessage = "checkSessionKeyMessage";
 
     private static BigInteger DHp = new BigInteger("17801190547854226652823756245015999014523215636912067427327445031444" +
             "28657887370207706126952521234630795671567847784664499706507709207278" +

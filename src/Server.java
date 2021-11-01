@@ -144,7 +144,41 @@ public class Server {
         // ------------------ End Handshake ------------------
 
         // ------------------ Start Data Exchange ------------------
+        String[] encryptedMessage;
 
+        // Send message 1
+        String msg1 = "Hello, this is a message from the Server, Please accept this msg";
+        String msg2 = "A bank system, including the internal and external sub-systems..";
+
+        // Receive encrypted message
+        try {
+            message = Utilities.decryptAndVerifyMessage(this.readMessage(), sessionKey);
+        } catch (Exception ignored) {
+            System.out.println("Invalid HMAC");
+            this.terminate();
+        }
+        if(message.equals(Protocol.getCloseConnectionString())) {
+            this.terminate();
+        }
+
+        // Send encrypted message
+        System.out.println("Sending Message 1...");
+        this.sendMessage(Utilities.encryptAndHMACMessage(msg1, sessionKey));
+
+        // Receive encrypted message
+        try {
+            message = Utilities.decryptAndVerifyMessage(this.readMessage(), sessionKey);
+        } catch (Exception ignored) {
+            System.out.println("Invalid HMAC");
+            this.terminate();
+        }
+        if(message.equals(Protocol.getCloseConnectionString())) {
+            this.terminate();
+        }
+
+        // Send encrypted message
+        System.out.println("Sending Message 2...");
+        this.sendMessage(Utilities.encryptAndHMACMessage(msg2, sessionKey));
 
 
         // ------------------ End Data Exchange ------------------
@@ -159,10 +193,6 @@ public class Server {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    private String readString() throws IOException {
-        return this.in.readLine();
     }
 
     private String readMessage() throws IOException {
