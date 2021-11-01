@@ -5,8 +5,9 @@ handshake (see Figure 1) to establish a secure channel (session key) then exchan
 simplified SSL handshake removes the messages for alert, change cipher spec, certificate, etc. 
 
 ## Compilation
-
-    cd src && javac Client.java Server.java
+    
+    cd src
+    javac -d ../out Client.java Server.java
 
 ## Running
 Client and Server need to be started in separate terminal sessions.
@@ -14,8 +15,8 @@ It does not matter what order they are started in.
 
 ### Start Server
 
-    java Server
+    java -cp ./out Server
 
 ### Start Client
 
-    java Client
+    java -cp ./out Client
