@@ -82,7 +82,7 @@ public class Utilities {
             SecretKeySpec keySpec = new SecretKeySpec(sessionKey.toByteArray(), "AES");
             IvParameterSpec iv = new IvParameterSpec(Protocol.getInitialIV().getBytes(StandardCharsets.UTF_8));
 
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, keySpec, iv);
 
             messageHMAC[0] = Base64.getEncoder().encodeToString(cipher.doFinal(inMsg.getBytes(StandardCharsets.UTF_8)));
@@ -99,7 +99,7 @@ public class Utilities {
             SecretKeySpec keySpec = new SecretKeySpec(sessionKey.toByteArray(), "AES");
             IvParameterSpec iv = new IvParameterSpec(Protocol.getInitialIV().getBytes(StandardCharsets.UTF_8));
 
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            Cipher cipher = Cipher.getInstance("AES/CTR/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE, keySpec, iv);
 
             return new String(cipher.doFinal(Base64.getDecoder().decode(inMsg)));
