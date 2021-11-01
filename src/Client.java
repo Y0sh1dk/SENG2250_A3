@@ -22,9 +22,11 @@ public class Client {
 
     private void run(int portNumber) throws IOException, InterruptedException {
         System.out.println("");
-        System.out.println("---------------------------------------------------");
-        System.out.println("                SENG2250 - A3 CLIENT               ");
-        System.out.println("---------------------------------------------------");
+        System.out.println("###################################################");
+        System.out.println("###################################################");
+        System.out.println("##              SENG2250 - A3 CLIENT             ##");
+        System.out.println("###################################################");
+        System.out.println("###################################################");
         System.out.println("");
 
         this.setupConnection(portNumber);
@@ -62,16 +64,17 @@ public class Client {
         serverRSAPubKey[0] = new BigInteger(message.split(Protocol.getMessageDelimiter())[0]);
         serverRSAPubKey[1] = new BigInteger(message.split(Protocol.getMessageDelimiter())[1]);
 
-        System.out.println("Server Public Key:\n" +
+        System.out.println("Received Server Public Key:\n" +
                 "e: " + serverRSAPubKey[0] +
-                "\nKey: " + serverRSAPubKey[1] + "\n\n");
+                "\n\nPublic Key: " + serverRSAPubKey[1] + "\n");
 
         System.out.println("----------------------- End Setup -----------------------\n");
         // ------------------ End Setup ------------------
 
         // ------------------ Start Handshake ------------------
         System.out.println("-------------------- Start Handshake --------------------");
-        // Send client ID
+        // Sending Client ID
+        System.out.println("Sending Client ID to Server...\n");
         this.sendMessage(Protocol.getClientID());
 
         // Receive server ID and Session ID
@@ -81,8 +84,8 @@ public class Client {
         }
         serverID = message.split(Protocol.getMessageDelimiter())[0];
         sessionID = message.split(Protocol.getMessageDelimiter())[1];
-        System.out.println("Server ID:\n" + serverID + "\n\n");
-        System.out.println("Session ID:\n" + sessionID + "\n\n");
+        System.out.println("Received Server ID:\n" + serverID + "\n");
+        System.out.println("Received Session ID:\n" + sessionID + "\n");
 
         // Generate DH Private key
         DHPrivateKey = Utilities.genDHPrivateKey(Protocol.getDHp());
@@ -90,7 +93,7 @@ public class Client {
         DHPublicKey = Utilities.genDHPublicKey(DHPrivateKey);
 
         // Send DH Public key to server
-        System.out.println("Sending DHPublicKey to Server:\n" + DHPublicKey.toString() + "\n\n");
+        System.out.println("Sending DH Public Key to Server...\n");
         this.sendMessage(DHPublicKey.toString());
 
         // Receive Servers DH Public Key
@@ -107,19 +110,20 @@ public class Client {
             this.terminate();
         }
         RSASignature = new BigInteger(message);
-        System.out.println("RSA Signature:\n" + RSASignature + "\n\n");
+        System.out.println("Received RSA Signature from Server:\n" + RSASignature + "\n");
 
         // Verify RSA Signature
         if(!RSASignature.equals(Utilities.genRSASignature(serverDHPublicKey, serverRSAPubKey))) {
             this.terminate();
         }
-        System.out.println("RSA Signature Verified!" + "\n\n");
+        System.out.println("RSA Signature Verified!" + "\n");
 
         // Calculate hashed session key
         sessionKey = Utilities.SHA256(Utilities.modPow(serverDHPublicKey, DHPrivateKey, Protocol.getDHp()).toString());
-        System.out.println("Session Key:\n" + sessionKey + "\n\n");
+        System.out.println("Calculated Session Key:\n" + sessionKey + "\n");
 
         // Send hashed session key
+        System.out.println("Sending Session Key to Server...");
         this.sendMessage(sessionKey.toString());
 
         // Receive hashed session key
@@ -131,7 +135,7 @@ public class Client {
         if (!message.equals(sessionKey.toString())) {
             this.terminate();
         }
-        System.out.println("Session keys verified!" + "\n\n");
+        System.out.println("Session keys verified!" + "\n");
 
         // Send encrypted finish message
         System.out.println("Sending finish handshake message...");
@@ -152,7 +156,7 @@ public class Client {
         if(!message.equals(Protocol.getCheckSessionKeyMessage())) {
             this.terminate();
         }
-        System.out.println("Handshake Success!" + "\n\n");
+        System.out.println("Handshake Success! (Message and HMAC verified)" + "\n");
 
         System.out.println("--------------------- End Handshake ---------------------\n");
 
@@ -162,7 +166,7 @@ public class Client {
         String msg1 = "Hello, this is a message from the Client, Please accept this msg";
         String msg2 = "Systems and Network Security is very cool!, would recommend!!!..";
 
-        System.out.println("Sending Message 1...");
+        System.out.println("Sending Message 1 to Server...\n");
         this.sendMessage(Utilities.encryptAndHMACMessage(msg1, sessionKey));
 
         // Receive encrypted message
@@ -175,9 +179,10 @@ public class Client {
         if(message.equals(Protocol.getCloseConnectionString())) {
             this.terminate();
         }
+        System.out.println("Message 1 Received from Server:\n" + message + "\n");
 
         // Send encrypted message
-        System.out.println("Sending Message 2...");
+        System.out.println("Sending Message 2 to Server...\n");
         this.sendMessage(Utilities.encryptAndHMACMessage(msg2, sessionKey));
 
         // Receive encrypted message
@@ -190,6 +195,7 @@ public class Client {
         if(message.equals(Protocol.getCloseConnectionString())) {
             this.terminate();
         }
+        System.out.println("Message 2 Received from Server:\n" + message + "\n");
 
         System.out.println("------------------- End Data Transfer -------------------");
         this.terminate();

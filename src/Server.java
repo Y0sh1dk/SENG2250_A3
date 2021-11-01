@@ -21,9 +21,11 @@ public class Server {
 
     private void run(int portNumber) throws IOException, InterruptedException {
         System.out.println("");
-        System.out.println("---------------------------------------------------");
-        System.out.println("                SENG2250 - A3 SERVER               ");
-        System.out.println("---------------------------------------------------");
+        System.out.println("###################################################");
+        System.out.println("###################################################");
+        System.out.println("##              SENG2250 - A3 SERVER             ##");
+        System.out.println("###################################################");
+        System.out.println("###################################################");
         System.out.println("");
 
         this.setupConnection(portNumber);
@@ -56,15 +58,12 @@ public class Server {
             this.terminate();
         }
 
-        // we want to send the server public RSA key
-
         // Generate RSA keys
         RSAPrivateKey = Utilities.generateRSAKeys(Protocol.getRSAEncryptionBit());
         RSAPublicKey = new BigInteger[]{RSAPrivateKey[0], Protocol.getPubKeyE()};
-        //pubKey = Utilities.modPow(Protocol.getDHg(), Protocol.getPubKeyE(), Protocol.getDHp());
 
         // Send public key
-        System.out.println("Sending Public Key:\n" + RSAPublicKey[0] + Protocol.getMessageDelimiter() + RSAPublicKey[1] + "\n\n");
+        System.out.println("Sending Public Key...");
         this.sendMessage(RSAPublicKey[0] + Protocol.getMessageDelimiter() + RSAPublicKey[1]);
 
         System.out.println("----------------------- End Setup -----------------------\n");
@@ -78,9 +77,10 @@ public class Server {
             this.terminate();
         }
         clientID = message;
+        System.out.println("Client ID Received:\n" + clientID + "\n");
 
         // Send Server ID and Session ID
-        System.out.println("Sending ServerID,SessionID:\n" + Protocol.getServerID() + "," + Protocol.getSessionID() + "\n\n");
+        System.out.println("Sending Server ID and Session ID...\n");
         this.sendMessage(Protocol.getServerID() + Protocol.getMessageDelimiter() + Protocol.getSessionID());
 
         // Generate DH Private key
@@ -94,21 +94,23 @@ public class Server {
             this.terminate();
         }
         clientDHPublicKey = new BigInteger(message);
+        System.out.println("Client DH Public Key:\n" + clientDHPublicKey);
 
         // Send DH Public key to client
-        System.out.println("Sending DH Public Key to client\n");
+        System.out.println("Sending DH Public Key to client...\n");
         this.sendMessage(DHPublicKey.toString());
 
         // Send RSA Signature to Client
+        System.out.println("Sending RSA Signature to Client...\n");
         RSASignature = Utilities.genRSASignature(DHPublicKey, RSAPublicKey);
         this.sendMessage(RSASignature.toString());
-        //System.out.println("RSASignature:\n" + RSASignature + "\n\n");
 
         // Calculate hashed session key
         sessionKey = Utilities.SHA256(Utilities.modPow(clientDHPublicKey, DHPrivateKey, Protocol.getDHp()).toString());
-        System.out.println("Session Key:\n" + sessionKey + "\n\n");
+        System.out.println("Calculated Session Key:\n" + sessionKey + "\n");
 
         // Send hashed session key
+        System.out.println("Sending Session Key to Client...");
         this.sendMessage(sessionKey.toString());
 
         // Receive hashed session key
@@ -120,7 +122,7 @@ public class Server {
         if (!message.equals(sessionKey.toString())) {
             this.terminate();
         }
-        System.out.println("Session keys verified!" + "\n\n");
+        System.out.println("Session keys verified!" + "\n");
 
         // Send encrypted finish message
         System.out.println("Sending finish handshake message...");
@@ -141,7 +143,7 @@ public class Server {
         if(!message.equals(Protocol.getCheckSessionKeyMessage())) {
             this.terminate();
         }
-        System.out.println("Handshake Success!" + "\n\n");
+        System.out.println("Handshake Success! (Message and HMAC verified)" + "\n");
 
         System.out.println("--------------------- End Handshake ---------------------\n");
 
@@ -161,9 +163,10 @@ public class Server {
         if(message.equals(Protocol.getCloseConnectionString())) {
             this.terminate();
         }
+        System.out.println("Message 1 Received from Client:\n" + message + "\n");
 
         // Send encrypted message
-        System.out.println("Sending Message 1...");
+        System.out.println("Sending Message 1 to Client...\n");
         this.sendMessage(Utilities.encryptAndHMACMessage(msg1, sessionKey));
 
         // Receive encrypted message
@@ -176,9 +179,10 @@ public class Server {
         if(message.equals(Protocol.getCloseConnectionString())) {
             this.terminate();
         }
+        System.out.println("Message 2 Received from Client:\n" + message + "\n");
 
         // Send encrypted message
-        System.out.println("Sending Message 2...");
+        System.out.println("Sending Message 2 to Client...\n");
         this.sendMessage(Utilities.encryptAndHMACMessage(msg2, sessionKey));
 
 
